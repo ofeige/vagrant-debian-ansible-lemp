@@ -106,7 +106,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         projectname: 0,
         testing_mode: 0, # 0 = skip this part // 1 = show installed software versions
         symfony_version: 0,
-        ansible_host: vagrant_config['private_ip']
+        ansible_host: vagrant_config['private_ip'],
+        rabbitmq_allowed: vagrant_config['rabbitmq_allowed']
       }
   end
   
@@ -122,7 +123,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
               projectname: project,
               testing_mode: 0, 
               symfony_version: vagrant_config['symfony_version'],
-              ansible_host: vagrant_config['private_ip']
+              ansible_host: vagrant_config['private_ip'],
+              rabbitmq_allowed: vagrant_config['rabbitmq_allowed']
           }
       end
   end

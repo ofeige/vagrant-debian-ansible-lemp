@@ -1,0 +1,82 @@
+- name: install key
+  apt_key:
+    url: "{{ rabbitmq_apt_key_url }}"
+    state: present
+  register: rabbitmq_key_installed
+
+- name: add repos
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+    update_cache: no
+  when: rabbitmq_key_installed|success
+  register: rabbitmq_repo_installed
+  with_items: "{{ rabbitmq_apt_repositories }}"
+
+- name: update apt cache
+  apt:
+    update_cache: yes
+  when: rabbitmq_repo_installed|changed
+
+- name: install apt packages
+  apt:
+    name: "{{ item }}"
+    state: latest
+    install_recommends: no
+    update_cache: yes
+    cache_valid_time: 86400
+  when: rabbitmq_repo_installed|success
+  with_items: "{{ rabbitmq_packages }}"
+  register: package_installed
+
+- name: stop service
+  service:
+    name: "{{ rabbitmq_daemon }}"
+    state: stopped
+  when: package_installed.changed
+
+- name: "ensure usergroup '{{ rabbitmq_default_user_group }}' exists"
+  group:
+    name: "{{ rabbitmq_default_user_group }}"
+    state: present
+    system: yes
+  tags: rabbitmq_config
+
+- name: "ensure user '{{ rabbitmq_default_user }}' exists"
+  user:
+    name: "{{ rabbitmq_default_user }}"
+    group: "{{ rabbitmq_default_user_group }}"
+    state: present
+    createhome: no
+    system: yes
+  tags: rabbitmq_config
+
+- name: config
+  template:
+    src: "{{ item }}"
+    dest: "{{ rabbitmq_config_path }}/{{ item }}"
+    owner: "{{ rabbitmq_default_user }}"
+    group: "{{ rabbitmq_default_user_group }}"
+    mode: 0744
+  with_items:
+    - rabbitmq.config
+    - rabbitmq-env.conf
+  notify:
+    - restart rabbitmq
+  tags: rabbitmq_config
+
+- name: plugins
+  command: "rabbitmq-plugins enable {{ item }}"
+  when: rabbitmq_enable_plugins
+  with_items: "{{ rabbitmq_enabled_plugins }}"
+  notify: restart rabbitmq
+  tags: rabbitmq_config
+  changed_when: False
+
+- name: service start
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - "{{ rabbitmq_daemon }}"

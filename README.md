@@ -17,6 +17,7 @@ This is a development environment for Symfony projects on a Debian based Vagrant
 | Composer | 1.6.3         | 1.6.3          | &#10003; |
 | Node.js  | 8.10.0        | 8.10.0         | &#10003; |
 | Symfony  | 4.0.8         | 4.0.8          | &#10003; |
+| RabbitMQ | 3.6.15        | 3.6.15         | &#10003; |
 
 ## Requirements
 
@@ -48,6 +49,9 @@ This is a development environment for Symfony projects on a Debian based Vagrant
   - password: changeme
   - root is allowed to access the database from localhost without a password
 - Redis: 127.0.0.1:6379
+- Rabbitmq
+  - user: rabbitmq
+  - password: rabbitmq
 
 ## Symfony3 Debugging
 
@@ -81,6 +85,7 @@ configs:
       - foo                         # Generated URLs => foo.lemp.test
       - bar                         # Generated URLs => bar.lemp.test
     symfony_version: 4.0            # Symfony version like 4.0 or 3.4
+    rabbitmq_allowed: false         # Add rabbitmq (if true) to the VM (change requires vagrant provision)
 ```
 
 Every servername or projectname change needs an update of your local hostfile.
